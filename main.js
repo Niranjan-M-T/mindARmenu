@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fetchMenuData = async () => {
     try {
       log('Fetching menu data...');
-      const response = await fetch('mindARmenu/assets/menu.json');
+      const response = await fetch('assets/menu.json');
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       menuData = await response.json();
       log('Menu data fetched. Creating UI...');
