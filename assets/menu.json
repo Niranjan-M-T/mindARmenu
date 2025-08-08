@@ -1,0 +1,10 @@
+[
+  {
+    "model": "burger.glb",
+    "text": "burger.txt"
+  },
+  {
+    "model": "pizza.glb",
+    "text": "pizza.txt"
+  }
+]
