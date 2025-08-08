@@ -65,13 +65,37 @@ document.addEventListener('DOMContentLoaded', () => {
       itemDescriptionEl.textContent = "Could not load item details.";
     }
 
-    // Create and add new model
-    const modelEl = document.createElement('a-gltf-model');
-    modelEl.setAttribute('src', `assets/${item.model}`);
+    // Create and add new model based on file extension
+    const modelSrc = `assets/${item.model}`;
+    const fileExtension = item.model.split('.').pop().toLowerCase();
+
+    let modelEl;
+
+    if (fileExtension === 'glb' || fileExtension === 'gltf') {
+      modelEl = document.createElement('a-gltf-model');
+      modelEl.setAttribute('src', modelSrc);
+    } else if (fileExtension === 'obj') {
+      modelEl = document.createElement('a-obj-model');
+      modelEl.setAttribute('src', modelSrc);
+      // Convention: Look for an .mtl file with the same name for materials
+      const mtlSrc = modelSrc.replace(/\.obj$/, '.mtl');
+      modelEl.setAttribute('mtl', mtlSrc);
+    } else {
+      console.error(`Unsupported model format: .${fileExtension}`);
+      itemNameEl.textContent = "Error";
+      itemDescriptionEl.textContent = `Unsupported model format: .${fileExtension}. Please use .glb, .gltf, or .obj.`;
+      return;
+    }
+
     modelEl.setAttribute('position', '0 0.5 0');
     modelEl.setAttribute('scale', '0.1 0.1 0.1');
     modelEl.setAttribute('rotation', '0 0 0');
-    modelEl.setAttribute('animation-mixer', ''); // if the model has animations
+
+    // glTF models can have animations, but other formats usually don't via this component
+    if (fileExtension === 'glb' || fileExtension === 'gltf') {
+      modelEl.setAttribute('animation-mixer', '');
+    }
+
     targetEntity.appendChild(modelEl);
     currentModel = modelEl;
   };
@@ -81,14 +105,20 @@ document.addEventListener('DOMContentLoaded', () => {
   startButton.textContent = 'Start AR';
   startButton.classList.add('start-button');
   startButton.onclick = () => {
-    // In a test environment, we might not have a camera.
-    // This allows us to bypass the AR start and test the UI.
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('test') !== 'true') {
-      sceneEl.systems['mindar-image'].start();
-    }
+    // Show the menu UI immediately for a responsive feel.
     document.querySelector('.menu-overlay').style.display = 'flex';
     startButton.style.display = 'none';
+
+    // Then, try to start the AR system.
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('test') !== 'true') {
+      sceneEl.systems['mindar-image'].start().catch(error => {
+        // Handle cases where camera access is denied or fails.
+        console.error("MindAR starting failed:", error);
+        const details = document.getElementById('item-details');
+        details.innerHTML = `<p style="color: red;">Could not start AR camera. Please check camera permissions and refresh the page.</p>`;
+      });
+    }
   };
   document.body.appendChild(startButton);
 

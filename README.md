@@ -38,14 +38,16 @@ All your menu content is stored in the `assets` folder. Customizing the menu is 
 
 Inside the `assets` folder, you'll find:
 -   `menu.json`: A list of all your menu items.
--   `.glb` files: These are your 3D models (e.g., `burger.glb`).
+-   `.glb`, `.obj` files: These are your 3D models. We recommend using `.glb` for best performance.
+-   `.mtl` files: Optional material files for `.obj` models.
 -   `.txt` files: These hold the name and description for each dish (e.g., `burger.txt`).
 
 ### How to Add a New Dish
 
 Let's say you want to add a new "Taco" dish.
 
-1.  **Add your 3D model:** Place your `taco.glb` file into the `assets` folder.
+1.  **Add your 3D model:** Place your `taco.glb` (or `taco.obj`) file into the `assets` folder.
+    -   **For `.obj` models:** If you have a material file, add the corresponding `.mtl` file to the `assets` folder as well (e.g., `taco.mtl`). The app will automatically find and use it.
 2.  **Add your description:** Create a new text file named `taco.txt` in the `assets` folder. The first line of this file is the dish name, and the rest is the description.
     ```
     Delicious Taco
