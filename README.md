@@ -42,14 +42,14 @@ The easiest way to do this is using a free tool called **ngrok**, which creates 
 
 ### Viewing the AR Experience
 
-1.  After a brief loading screen, the menu will appear.
-2.  You can **swipe left or right** to browse through the different menu items, or use the buttons at the top.
-3.  Click the "Start AR" button to activate your camera.
-4.  Point your phone's camera at the image target below to see the 3D model in AR.
+1.  After a brief loading screen, the menu will appear, and the camera will start automatically.
+2.  You can **swipe left or right** to browse through the different menu items.
+3.  Point your phone's camera at the default image target below to see the 3D model appear.
+4.  Click the "Start AR" button to hide the menu UI for a clear view.
 
-**Default Image Target:**
+**Default Image Target (T-Rex):**
 
-![Default Marker Image](https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.png)
+![Default Marker Image](https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-image-big.jpeg)
 
 ## Customizing Your Menu
 
@@ -102,19 +102,21 @@ Let's say you want to add a new "Taco" dish.
 
 ## Using a Custom Image Target
 
-You can use your own image as the AR marker (e.g., your restaurant's logo or a picture from your menu).
+You can use your own image as the AR marker (e.g., your restaurant's logo or a picture from your menu). AR.js uses a different marker system than the previous version.
 
-1.  **Choose a good marker image:** A good marker has sharp corners, high contrast, and lots of unique detail. Avoid blurry or repetitive patterns.
-2.  **Compile your marker:** Go to the official **[MindAR Image Compiler](https://hiukim.github.io/mind-ar-js-doc/tools/compile/)**.
-3.  Upload your image. The tool will give you a `.mind` file. Download it.
-4.  **Add the file to your project:** Place the new `.mind` file (e.g., `mymarker.mind`) into the `assets` folder.
-5.  **Update the project to use your marker:** Open `index.html` with a text editor and find this line:
+1.  **Choose a good marker image:** A good marker has lots of unique detail. Avoid blurry images or simple geometric patterns. A regular, colorful photograph works well.
+2.  **Generate your marker files:** Go to the official **[AR.js NFT Marker Creator](https://ar-js-org.github.io/NFT-Marker-Creator/)**.
+3.  Upload your image. The tool will generate and download **three** files (e.g., `mymarker.fset`, `mymarker.iset`, `mymarker.fset3`).
+4.  **Add the files to your project:** Place all three new files into the `assets` folder.
+5.  **Update the project to use your marker:** Open `index.html` with a text editor and find the `<a-nft>` tag. Change the `url` property to point to the **base name** of your new files (without the extension).
+
+    *Change this:*
     ```html
-    <a-scene mindar-image="imageTargetSrc: https://.../card.mind; ...">
+    <a-nft url="https://arjs-cors-proxy.herokuapp.com/.../trex" ...>
     ```
-    Change the `imageTargetSrc` to point to your new file:
+    *To this:*
     ```html
-    <a-scene mindar-image="imageTargetSrc: assets/mymarker.mind; ...">
+    <a-nft url="assets/mymarker" ...>
     ```
 
 And that's it! You now have a fully customized AR menu.
