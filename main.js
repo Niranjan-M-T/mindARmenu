@@ -119,25 +119,54 @@ document.addEventListener('DOMContentLoaded', () => {
     currentModel = modelEl;
   };
 
-  startButton.onclick = () => {
+  startButton.onclick = async () => {
     log('Start AR button clicked.');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('test') === 'true') {
+      log('Test mode enabled. Skipping camera start.');
+      return;
+    }
+
+    // Hide UI for AR view
     menuItemsContainer.style.display = 'none';
     itemDetailsPanel.style.display = 'none';
     startButton.style.display = 'none';
 
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('test') !== 'true') {
-      log('Attempting to start MindAR camera...');
-      sceneEl.systems['mindar-image'].start()
-        .then(() => {
-          log('MindAR camera started successfully.');
-        })
-        .catch(error => {
-          log(`MindAR starting failed: ${error}`);
-          menuItemsContainer.style.display = 'flex';
-          itemDetailsPanel.style.display = 'block';
-          itemDetailsPanel.innerHTML = `<p style="color: red;">Could not start AR camera. Please check permissions.</p>`;
-        });
+    // 1. Pre-flight check for camera permissions
+    try {
+      log('Attempting pre-flight camera check...');
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      log('Pre-flight check successful. Camera is accessible.');
+      // Stop the stream immediately, we just needed to check permission
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      log(`Pre-flight check failed: ${err.name} - ${err.message}`);
+      log('Aborting AR start. Please check browser/OS camera permissions.');
+      itemDetailsPanel.innerHTML = `<p style="color: red;">Camera permission denied. Please check your browser and system settings.</p>`;
+      itemDetailsPanel.style.display = 'block';
+      return;
+    }
+
+    // 2. Attempt to start MindAR with a timeout
+    log('Attempting to start MindAR camera...');
+    try {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('MindAR start timed out after 10 seconds.')), 10000)
+      );
+
+      await Promise.race([
+        sceneEl.systems['mindar-image'].start(),
+        timeoutPromise
+      ]);
+
+      log('MindAR camera started successfully.');
+
+    } catch (error) {
+      log(`MindAR starting failed: ${error}`);
+      menuItemsContainer.style.display = 'flex';
+      itemDetailsPanel.style.display = 'block';
+      itemDetailsPanel.innerHTML = `<p style="color: red;">Could not start AR camera. Error: ${error.message}</p>`;
     }
   };
 
