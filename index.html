@@ -8,12 +8,18 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
     <div id="menu-overlay" class="menu-overlay">
-      <div id="menu-items" class="menu-items"></div>
+      <div id="menu-items" class="menu-items">
+        <!-- Buttons will be added here by JS -->
+      </div>
       <div id="item-details" class="item-details">
         <h2 id="item-name"></h2>
         <p id="item-description"></p>
       </div>
+      <button id="start-ar-button" class="start-button">Start AR</button>
     </div>
     <a-scene mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind; autoStart: false" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets>

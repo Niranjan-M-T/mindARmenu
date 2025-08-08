@@ -23,8 +23,10 @@ The easiest way to run a local server is using Python. If you have Python instal
 
 ### Viewing the AR Experience
 
-1.  Once the page is loaded, you'll see a "Start AR" button. Click it to begin.
-2.  Point your phone's camera at the image target below. You can print this image out and place it on your tables.
+1.  After a brief loading screen, the menu will appear.
+2.  You can **swipe left or right** to browse through the different menu items, or use the buttons at the top.
+3.  Click the "Start AR" button to activate your camera.
+4.  Point your phone's camera at the image target below to see the 3D model in AR.
 
 **Default Image Target:**
 

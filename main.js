@@ -4,56 +4,73 @@ document.addEventListener('DOMContentLoaded', () => {
   const itemNameEl = document.getElementById('item-name');
   const itemDescriptionEl = document.getElementById('item-description');
   const targetEntity = document.getElementById('target-entity');
+  const loadingOverlay = document.getElementById('loading-overlay');
+  const menuOverlay = document.getElementById('menu-overlay');
+  const startButton = document.getElementById('start-ar-button');
+  const itemDetailsPanel = document.getElementById('item-details');
 
   let currentModel = null;
   let menuData = [];
+  let currentIndex = -1;
 
   const fetchMenuData = async () => {
     try {
-      // In a real scenario, this would be the only file the user needs to edit.
-      // To add/remove items, they just edit menu.json
-      // To change details, they edit the corresponding .txt file.
       const response = await fetch('assets/menu.json');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       menuData = await response.json();
-      createMenuUI();
+      await createMenuUI();
+
+      if (menuData.length > 0) {
+        showItem(0);
+      }
+
+      loadingOverlay.style.opacity = '0';
+      menuOverlay.style.opacity = '1';
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+      }, 500);
+
     } catch (e) {
       console.error("Failed to load menu data:", e);
-      itemNameEl.textContent = "Error";
-      itemDescriptionEl.textContent = "Could not load menu.json. Please ensure it's in the 'assets' folder and correctly formatted.";
+      loadingOverlay.style.display = 'none';
     }
   };
 
-  const createMenuUI = () => {
-    menuData.forEach((item, index) => {
+  const createMenuUI = async () => {
+    const promises = menuData.map((item, index) => {
       const button = document.createElement('button');
-      button.textContent = `Item ${index + 1}`; // Placeholder name
       button.onclick = () => showItem(index);
       menuItemsContainer.appendChild(button);
 
-      // Fetch text to update button name
-      fetch(`assets/${item.text}`)
+      return fetch(`assets/${item.text}`)
         .then(response => response.text())
         .then(text => {
           const [name] = text.split('\n');
           button.textContent = name || `Item ${index + 1}`;
         });
     });
+    await Promise.all(promises);
   };
 
   const showItem = async (index) => {
-    const item = menuData[index];
+    if (index < 0 || index >= menuData.length) return;
+    currentIndex = index;
+
+    const buttons = menuItemsContainer.querySelectorAll('button');
+    buttons.forEach((btn, btnIndex) => {
+      btn.classList.toggle('active', btnIndex === currentIndex);
+    });
+
+    const item = menuData[currentIndex];
     if (!item) return;
 
-    // Remove previous model
     if (currentModel) {
       targetEntity.removeChild(currentModel);
       currentModel = null;
     }
 
-    // Fetch and display text details
     try {
       const response = await fetch(`assets/${item.text}`);
       const text = await response.text();
@@ -65,10 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
       itemDescriptionEl.textContent = "Could not load item details.";
     }
 
-    // Create and add new model based on file extension
     const modelSrc = `assets/${item.model}`;
     const fileExtension = item.model.split('.').pop().toLowerCase();
-
     let modelEl;
 
     if (fileExtension === 'glb' || fileExtension === 'gltf') {
@@ -77,13 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (fileExtension === 'obj') {
       modelEl = document.createElement('a-obj-model');
       modelEl.setAttribute('src', modelSrc);
-      // Convention: Look for an .mtl file with the same name for materials
       const mtlSrc = modelSrc.replace(/\.obj$/, '.mtl');
       modelEl.setAttribute('mtl', mtlSrc);
     } else {
       console.error(`Unsupported model format: .${fileExtension}`);
       itemNameEl.textContent = "Error";
-      itemDescriptionEl.textContent = `Unsupported model format: .${fileExtension}. Please use .glb, .gltf, or .obj.`;
+      itemDescriptionEl.textContent = `Unsupported model format: .${fileExtension}.`;
       return;
     }
 
@@ -91,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
     modelEl.setAttribute('scale', '0.1 0.1 0.1');
     modelEl.setAttribute('rotation', '0 0 0');
 
-    // glTF models can have animations, but other formats usually don't via this component
     if (fileExtension === 'glb' || fileExtension === 'gltf') {
       modelEl.setAttribute('animation-mixer', '');
     }
@@ -100,30 +113,51 @@ document.addEventListener('DOMContentLoaded', () => {
     currentModel = modelEl;
   };
 
-  // Add a start button
-  const startButton = document.createElement('button');
-  startButton.textContent = 'Start AR';
-  startButton.classList.add('start-button');
   startButton.onclick = () => {
-    // Show the menu UI immediately for a responsive feel.
-    document.querySelector('.menu-overlay').style.display = 'flex';
+    // Hide UI elements for an unobstructed AR view
+    menuItemsContainer.style.display = 'none';
+    itemDetailsPanel.style.display = 'none';
     startButton.style.display = 'none';
 
-    // Then, try to start the AR system.
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('test') !== 'true') {
       sceneEl.systems['mindar-image'].start().catch(error => {
-        // Handle cases where camera access is denied or fails.
         console.error("MindAR starting failed:", error);
-        const details = document.getElementById('item-details');
-        details.innerHTML = `<p style="color: red;">Could not start AR camera. Please check camera permissions and refresh the page.</p>`;
+        // Bring back the UI if AR fails to start
+        menuItemsContainer.style.display = 'flex';
+        itemDetailsPanel.style.display = 'block';
+        itemDetailsPanel.innerHTML = `<p style="color: red;">Could not start AR camera. Please check permissions.</p>`;
       });
     }
   };
-  document.body.appendChild(startButton);
 
-  // Hide menu until AR starts
-  document.querySelector('.menu-overlay').style.display = 'none';
+  // --- Swipe Navigation ---
+  let touchStartX = 0;
+  let touchEndX = 0;
+  const swipeThreshold = 50;
+
+  menuOverlay.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  menuOverlay.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  function handleSwipe() {
+    if (startButton.style.display === 'none') return; // Don't swipe if in AR mode
+    const swipeDistance = touchEndX - touchStartX;
+    if (Math.abs(swipeDistance) < swipeThreshold) return;
+
+    if (swipeDistance < 0) {
+      const nextIndex = (currentIndex + 1) % menuData.length;
+      showItem(nextIndex);
+    } else {
+      const prevIndex = (currentIndex - 1 + menuData.length) % menuData.length;
+      showItem(prevIndex);
+    }
+  }
 
   fetchMenuData();
 });
