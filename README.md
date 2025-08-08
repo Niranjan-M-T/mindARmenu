@@ -4,22 +4,41 @@ Welcome to your new Augmented Reality restaurant menu! This project allows you t
 
 This guide will walk you through setting up and customizing your menu. No coding experience is required!
 
-## How to Use the AR Menu
+## How to Run & Test
 
-To see your AR menu in action, you'll need to run a simple local web server from this folder. This is because modern web browsers have security rules that prevent websites from loading files directly from your computer.
+You will need to run a local web server to view the application.
 
-### Quick Start with a Local Server
+### For Desktop/Laptop Testing
 
-The easiest way to run a local server is using Python. If you have Python installed, follow these steps:
+This is useful for quickly checking the UI and menu functionality (but not the AR camera).
 
-1.  Open a terminal or command prompt in this project folder.
-2.  Run the following command:
+1.  Open a terminal in this project folder.
+2.  Run the command: `python -m http.server 8000`
+3.  Open your browser and go to `http://localhost:8000`.
+
+### For Mobile AR Testing (Required)
+
+To use the camera for Augmented Reality, you **must** access the website via a secure `https://` connection. Mobile browsers will not allow camera access over an insecure `http://` connection.
+
+The easiest way to do this is using a free tool called **ngrok**, which creates a secure public URL for your local server.
+
+**Step-by-step guide:**
+
+1.  **Download ngrok:** Go to the [ngrok website](https://ngrok.com/download) and download the version for your operating system. Unzip the file.
+
+2.  **Start your local server:** In a terminal window, start the basic server from the project folder:
     ```bash
-    # For Python 3
-    python -m http.server
+    python -m http.server 8000
     ```
-3.  Open your web browser and go to `http://localhost:8000`.
-4.  On your phone, connect to the same Wi-Fi network as your computer and access the same address.
+
+3.  **Start ngrok:** Open a **new, separate terminal window**. Navigate to where you unzipped ngrok and run the following command to create a secure tunnel to your local server:
+    ```bash
+    ./ngrok http 8000
+    ```
+
+4.  **Get your secure URL:** Ngrok will display a "Forwarding" URL that looks something like `https://<random-characters>.ngrok-free.app`. This is your temporary, secure public URL.
+
+5.  **Test on your phone:** Open the camera on your mobile phone and scan the QR code that ngrok displays in the terminal, or simply type the `https://` URL into your mobile browser. The AR experience should now work correctly!
 
 ### Viewing the AR Experience
 

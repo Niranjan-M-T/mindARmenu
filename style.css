@@ -134,3 +134,20 @@ body {
   cursor: not-allowed;
   transform: translateX(-50%) scale(1);
 }
+
+/* --- Debug Logger --- */
+#debug-log {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #0f0;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 10px;
+  overflow-y: scroll;
+  z-index: 200;
+  border-top: 1px solid #444;
+}

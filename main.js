@@ -8,8 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuOverlay = document.getElementById('menu-overlay');
   const startButton = document.getElementById('start-ar-button');
   const itemDetailsPanel = document.getElementById('item-details');
+  const debugLog = document.getElementById('debug-log');
 
-  // Disable the button until the AR system is ready
+  const log = (message) => {
+    const p = document.createElement('p');
+    p.textContent = `> ${message}`;
+    debugLog.appendChild(p);
+    debugLog.scrollTop = debugLog.scrollHeight;
+  };
+
+  log('DOM content loaded. Script starting.');
   startButton.disabled = true;
 
   let currentModel = null;
@@ -18,25 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const fetchMenuData = async () => {
     try {
+      log('Fetching menu data...');
       const response = await fetch('assets/menu.json');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       menuData = await response.json();
+      log('Menu data fetched. Creating UI...');
       await createMenuUI();
+      log('UI Created.');
 
-      if (menuData.length > 0) {
-        showItem(0);
-      }
+      if (menuData.length > 0) showItem(0);
 
       loadingOverlay.style.opacity = '0';
       menuOverlay.style.opacity = '1';
-      setTimeout(() => {
-        loadingOverlay.style.display = 'none';
-      }, 500);
+      setTimeout(() => { loadingOverlay.style.display = 'none'; }, 500);
+      log('Loading complete. Menu is visible.');
 
     } catch (e) {
-      console.error("Failed to load menu data:", e);
+      log(`Error in fetchMenuData: ${e.message}`);
       loadingOverlay.style.display = 'none';
     }
   };
@@ -81,8 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       itemNameEl.textContent = name || 'No name';
       itemDescriptionEl.textContent = descriptionParts.join('\n').trim() || 'No description available.';
     } catch (e) {
-      itemNameEl.textContent = "Error";
-      itemDescriptionEl.textContent = "Could not load item details.";
+      log(`Error showing item details: ${e.message}`);
     }
 
     const modelSrc = `assets/${item.model}`;
@@ -98,9 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const mtlSrc = modelSrc.replace(/\.obj$/, '.mtl');
       modelEl.setAttribute('mtl', mtlSrc);
     } else {
-      console.error(`Unsupported model format: .${fileExtension}`);
-      itemNameEl.textContent = "Error";
-      itemDescriptionEl.textContent = `Unsupported model format: .${fileExtension}.`;
+      log(`Unsupported model format: .${fileExtension}`);
       return;
     }
 
@@ -117,24 +120,27 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   startButton.onclick = () => {
-    // Hide UI elements for an unobstructed AR view
+    log('Start AR button clicked.');
     menuItemsContainer.style.display = 'none';
     itemDetailsPanel.style.display = 'none';
     startButton.style.display = 'none';
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('test') !== 'true') {
-      sceneEl.systems['mindar-image'].start().catch(error => {
-        console.error("MindAR starting failed:", error);
-        // Bring back the UI if AR fails to start
-        menuItemsContainer.style.display = 'flex';
-        itemDetailsPanel.style.display = 'block';
-        itemDetailsPanel.innerHTML = `<p style="color: red;">Could not start AR camera. Please check permissions.</p>`;
-      });
+      log('Attempting to start MindAR camera...');
+      sceneEl.systems['mindar-image'].start()
+        .then(() => {
+          log('MindAR camera started successfully.');
+        })
+        .catch(error => {
+          log(`MindAR starting failed: ${error}`);
+          menuItemsContainer.style.display = 'flex';
+          itemDetailsPanel.style.display = 'block';
+          itemDetailsPanel.innerHTML = `<p style="color: red;">Could not start AR camera. Please check permissions.</p>`;
+        });
     }
   };
 
-  // --- Swipe Navigation ---
   let touchStartX = 0;
   let touchEndX = 0;
   const swipeThreshold = 50;
@@ -149,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { passive: true });
 
   function handleSwipe() {
-    if (startButton.style.display === 'none') return; // Don't swipe if in AR mode
+    if (startButton.style.display === 'none') return;
     const swipeDistance = touchEndX - touchStartX;
     if (Math.abs(swipeDistance) < swipeThreshold) return;
 
@@ -162,9 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Listen for the A-Frame scene to be fully loaded
   sceneEl.addEventListener('loaded', () => {
+    log('A-Frame scene loaded. AR system should be ready.');
     startButton.disabled = false;
+    log('Start AR button enabled.');
   });
 
   fetchMenuData();
