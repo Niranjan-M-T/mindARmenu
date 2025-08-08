@@ -116,6 +116,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // With AR.js, the camera starts automatically. The button just hides the UI.
   startButton.onclick = () => {
     log('Start AR button clicked. Hiding UI for AR view.');
+
+    // Forcibly hide the loader in case AR.js fails to do so
+    const loader = document.querySelector('.arjs-loader');
+    if (loader) loader.style.display = 'none';
+
     menuItemsContainer.style.display = 'none';
     itemDetailsPanel.style.display = 'none';
     startButton.style.display = 'none';
@@ -152,6 +157,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   sceneEl.addEventListener('camera-error', (error) => {
     log(`AR.js camera-error event fired: ${error.detail.error}`);
+  });
+
+  // --- AR.js Marker Events ---
+  targetEntity.addEventListener('markerFound', () => {
+    log('Marker Found!');
+  });
+
+  targetEntity.addEventListener('markerLost', () => {
+    log('Marker Lost.');
   });
 
   fetchMenuData();
