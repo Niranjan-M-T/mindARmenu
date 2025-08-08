@@ -127,3 +127,10 @@ body {
 #start-ar-button:hover {
   transform: translateX(-50%) scale(1.05);
 }
+
+#start-ar-button:disabled {
+  background-color: #555;
+  color: #999;
+  cursor: not-allowed;
+  transform: translateX(-50%) scale(1);
+}

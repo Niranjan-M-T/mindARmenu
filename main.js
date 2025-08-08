@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const startButton = document.getElementById('start-ar-button');
   const itemDetailsPanel = document.getElementById('item-details');
 
+  // Disable the button until the AR system is ready
+  startButton.disabled = true;
+
   let currentModel = null;
   let menuData = [];
   let currentIndex = -1;
@@ -158,6 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
       showItem(prevIndex);
     }
   }
+
+  // Listen for the A-Frame scene to be fully loaded
+  sceneEl.addEventListener('loaded', () => {
+    startButton.disabled = false;
+  });
 
   fetchMenuData();
 });
