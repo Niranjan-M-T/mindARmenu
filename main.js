@@ -198,9 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   sceneEl.addEventListener('loaded', () => {
-    log('A-Frame scene loaded. AR system should be ready.');
-    startButton.disabled = false;
-    log('Start AR button enabled.');
+    log('A-Frame scene loaded. Checking for MindAR system...');
+
+    const checkMindARSystem = () => {
+      if (sceneEl.systems['mindar-image']) {
+        log('MindAR system is ready.');
+        startButton.disabled = false;
+        log('Start AR button enabled.');
+      } else {
+        log('MindAR system not ready, polling again in 200ms...');
+        setTimeout(checkMindARSystem, 200);
+      }
+    };
+    checkMindARSystem();
   });
 
   fetchMenuData();
